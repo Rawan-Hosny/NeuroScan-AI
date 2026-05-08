@@ -1,0 +1,9 @@
+fastapi
+uvicorn
+python-multipart
+passlib
+PyJWT
+tensorflow
+opencv-python
+pillow
+numpy

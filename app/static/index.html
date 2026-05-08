@@ -1,0 +1,173 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroScan AI </title>
+    
+    <!-- Stylesheets -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2.2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="page-background"></div>
+    <div class="page-overlay"></div>
+    <button id="toggle-theme" class="nav-icon-btn" style="position: fixed; top: 20px; right: 20px; z-index: 1000;">
+        <i class="fa-solid fa-moon"></i>
+    </button>
+    
+    <!-- Background Animation Elements -->
+    <div class="bg-blobs" aria-hidden="true">
+        <div class="blob blob-1"></div>
+        <div class="blob blob-2"></div>
+    </div>
+
+    <!-- Main Authentication Container -->
+    <main class="auth-container">
+        <section class="auth-card">
+            
+            <!-- Header Section -->
+            <header class="auth-header">
+                <h1>NeuroScan AI</h1>
+                <p id="auth-subtitle">Welcome</p>
+            </header>
+
+            <!-- MAIN CONTENT (TABS & FORMS)  -->
+            <div id="auth-main-content">
+                
+                <!-- Navigation Tabs -->
+                <nav class="auth-tabs" id="auth-tabs">
+                    <button class="tab-btn active" onclick="switchTab('signin')">Sign In</button>
+                    <button class="tab-btn" onclick="switchTab('signup')">Create Account</button>
+                </nav>
+
+                <!-- 1. Sign In Form -->
+                <form id="signin-form" class="auth-form active">
+                    <div class="input-group">
+                        <label for="signin-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="signin-email" placeholder="doctor@hospital.com" required>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="signin-password">Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="signin-password" placeholder="••••••••" required>
+                            <span class="toggle-password" onclick="togglePassword('signin-password')">
+                                <i class="fa-regular fa-eye"></i>
+                            </span>
+                        </div>
+                        <a href="#" class="forgot-link" onclick="showForgotPassword()">Forgot Password?</a>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn">
+                        <span class="btn-text">Sign In</span>
+                        <div class="loader"></div>
+                    </button>
+                </form>
+
+                <!-- 2. Create Account Form -->
+                <form id="signup-form" class="auth-form">
+                    <div class="input-group">
+                        <label for="signup-name">Full Name</label>
+                        <div class="input-wrapper">
+                            <input type="text" id="signup-name" placeholder=" Your full name" required>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="signup-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="signup-email" placeholder="doctor@hospital.com" required>
+                        </div>
+                        <p class="error-message" id="signup-email-error" style="display: none;"></p>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="signup-password">Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="signup-password" placeholder="••••••••" minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).*" title="Must use at least 8 characters, including letters, numbers, and symbols" required>
+                            <span class="toggle-password" onclick="togglePassword('signup-password')">
+                                <i class="fa-regular fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="signup-confirm">Confirm Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="signup-confirm" placeholder="••••••••" minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).*" title="Must use at least 8 characters, including letters, numbers, and symbols" required>
+                            <span class="toggle-password" onclick="togglePassword('signup-confirm')">
+                                <i class="fa-regular fa-eye"></i>
+                            </span>
+                        </div>
+                        <p class="error-message" id="confirm-error">Passwords do not match</p>
+                    </div>
+                    
+                    <button type="submit" class="submit-btn" id="signup-btn">
+                        <span class="btn-text">Create Account</span>
+                        <div class="loader"></div>
+                    </button>
+                </form>
+            </div>
+            <!-- ========================= FORGOT PASSWORD SECTION ========================= -->
+            <div id="forgot-password-section" style="display: none;">
+                
+                <!-- Step 1: Email Input for Reset -->
+                <div id="reset-step-1">
+                    <div class="input-group">
+                        <label for="reset-email">Enter your registered Email</label>
+                        <div class="input-wrapper">
+                            <input type="email" id="reset-email" placeholder="doctor@hospital.com">
+                        </div>
+                        <p class="error-message" id="reset-email-error">Email not found in our records</p>
+                    </div>
+                    
+                    <button class="submit-btn" onclick="verifyResetEmail()">
+                        <span class="btn-text">Verify Email</span>
+                        <div class="loader"></div>
+                    </button>
+                </div>
+
+                <!-- Step 2: Set New Password -->
+                <div id="reset-step-2" style="display: none;">
+                    <div class="input-group">
+                        <label for="new-password">New Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="new-password" placeholder="••••••••" minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).*" title="Must use at least 8 characters, including letters, numbers, and symbols" required>
+                            <span class="toggle-password" onclick="togglePassword('new-password')">
+                                <i class="fa-regular fa-eye"></i>
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <label for="confirm-new-password">Confirm New Password</label>
+                        <div class="input-wrapper">
+                            <input type="password" id="confirm-new-password" placeholder="••••••••" minlength="8" pattern="(?=.*[A-Za-z])(?=.*\d)(?=.*[^A-Za-z0-9]).*" title="Must use at least 8 characters, including letters, numbers, and symbols" required>
+                            <span class="toggle-password" onclick="togglePassword('confirm-new-password')">
+                                <i class="fa-regular fa-eye"></i>
+                            </span>
+                        </div>
+                        <p class="error-message" id="reset-confirm-error">Passwords do not match</p>
+                    </div>
+                    
+                    <button class="submit-btn" id="reset-final-btn" onclick="updatePassword()">
+                        <span class="btn-text">Update Password</span>
+                        <div class="loader"></div>
+                    </button>
+                </div>
+
+                <!-- Back Navigation -->
+                <p class="back-to-login" onclick="hideForgotPassword()">Back to Login</p>
+            </div>
+
+        </section>
+    </main>
+
+    <!-- Scripts -->
+    <script src="app.js?v=2.1"></script>
+</body>
+</html>

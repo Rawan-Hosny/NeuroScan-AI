@@ -1,0 +1,661 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>NeuroScan AI — Clinical Dashboard</title>
+    <!-- Premium Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&family=Tajawal:wght@400;500;700;800&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="style.css?v=2.2">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
+</head>
+
+<body class="navy-theme">
+    <div class="page-background"></div>
+    <div class="page-overlay"></div>
+    <!-- Animated Kinetic Background -->
+    <div class="kinetic-bg">
+        <canvas id="neural-canvas"></canvas>
+    </div>
+    <div class="bg-overlay"></div>
+
+    <nav class="navbar">
+        <div class="nav-brand">
+            <h1 class="nav-title">NeuroScan AI</h1>
+        </div>
+        <div class="nav-icons">
+            <span id="lbl-Welcome-msg" style="color: rgb(243, 248, 249); font-size: 0.9rem;">Welcome, <span id="welcome-user"
+                    style="color: var(--primary-blue); font-weight: 700;">---</span></span>
+            <button class="nav-icon-btn" id="btn-open-compare">Compare Scans</button>
+            <button class="nav-icon-btn" id="toggle-lang">AR</button>
+            <button class="nav-icon-btn" id="toggle-theme">
+                <i class="fa-solid fa-moon"></i>
+            </button>
+            <button class="nav-icon-btn" id="btn-sign-out">Logout</button>
+        </div>
+    </nav>
+
+    <main class="dashboard-main">
+        <!-- 1. Patient Metadata Card -->
+        <section class="glass-card">
+            <header style="margin-bottom: 2rem; text-align: center;">
+                <h2 style="color: var(--primary-blue); font-size: 1.5rem; font-weight: 800;">Patient Data</h2>
+            </header>
+
+            <form id="predict-form" class="auth-form-modern">
+                <div class="input-group-modern">
+                    <label id="lbl-name">Full Name</label>
+                    <input type="text" name="name" class="input-modern" required placeholder="Dr. John Doe">
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                    <div class="input-group-modern">
+                        <label id="lbl-age">Age</label>
+                        <input type="number" name="age" class="input-modern" required placeholder="65">
+                    </div>
+                    <div class="input-group-modern">
+                        <label id="lbl-gender">Gender</label>
+                        <select name="gender" class="input-modern">
+                            <option value="male">Male</option>
+                            <option value="female">Female</option>
+                        </select>
+                    </div>
+                </div>
+
+                <div class="input-group-modern">
+                    <label id="lbl-mmse">Cognitive Status (MMSE)</label>
+                    <div style="display:flex; gap:10px;">
+                        <input type="number" name="mmse_score" id="mmse_score" class="input-modern" readonly
+                            placeholder="---">
+                        <button type="button" class="nav-icon-btn" id="btn-open-cognitive" style="min-width: 100px;">Run
+                            Test</button>
+                    </div>
+                </div>
+
+                <button type="button" class="btn-auth-premium" id="btn-open-caregiver"
+                    style="background: rgba(0, 210, 255, 0.1); border: 1px solid rgba(0, 210, 255, 0.2); color: var(--primary-blue); box-shadow: none;">Caregiver
+                    AD8 Module</button>
+
+                <div style="margin-top: 1rem;">
+                    <label id="lbl-upload"
+                        style="font-size: 0.75rem; font-weight: 800; color: var(--primary-blue); text-transform: uppercase; margin-bottom: 0.5rem; display: block;">MRI
+                        Neural Scan</label>
+                    <div id="dropzone"
+                        style="padding: 2rem; text-align: center; cursor: pointer; border: 2px dashed rgba(0, 210, 255, 0.2); border-radius: 16px;">
+                        <i class="fa-solid fa-cloud-arrow-up"
+                            style="font-size: 2rem; color: var(--primary-blue); margin-bottom: 10px;"></i>
+                        <p id="lbl-drop" style="font-weight: 600; font-size: 0.9rem;">Click or drag MRI Scan</p>
+                        <span id="file-name"
+                            style="font-size: 0.75rem; color: var(--text-dim); display: block; margin-top: 5px;">No file
+                            selected</span>
+                        <input type="file" id="scan-file" hidden accept="image/*">
+                    </div>
+                </div>
+
+                <div id="thinking-loader"
+                    style="display:none; color: var(--primary-blue); font-weight: 700; text-align: center; padding: 1rem;">
+                    <i class="fa-solid fa-circle-notch fa-spin" style="margin-right: 10px;"></i>
+                    Analyzing Neural Patterns...
+                </div>
+
+                <button type="submit" class="btn-auth-premium" id="btn-run">Initiate Clinical Analysis</button>
+            </form>
+        </section>
+
+        <!-- 2. Diagnostic Findings Card — Premium Medical Dashboard -->
+        <section class="glass-card report-panel-compact" id="result-panel" style="display:none;">
+
+            <!-- Compact Report Header -->
+            <div class="report-header-compact">
+                <div class="report-header-compact-left">
+                    <div class="report-logo-mark-sm"><i class="fa-solid fa-brain"></i></div>
+                    <span class="report-title-sm">Clinical Diagnostic Report</span>
+                    <span class="report-pill" id="report-patient-id">NS-000</span>
+                    <span class="report-pill" id="report-date">--</span>
+                </div>
+                <button type="button" id="btn-download-pdf" class="btn-export-pdf-sm">
+                    <i class="fa-solid fa-file-medical"></i> Export PDF
+                </button>
+            </div>
+
+            <!-- Two-Column Dashboard Grid -->
+            <div class="findings-grid">
+
+                <!-- LEFT: Neural Analysis -->
+                <div class="findings-col">
+                    <div class="findings-col-header">
+                        <i class="fa-solid fa-brain" style="color: var(--primary-blue);"></i>
+                        <span>Neural Analysis</span>
+                    </div>
+
+                    <!-- Diagnosis Banner + Metrics inline -->
+                    <div class="neural-top-row">
+                        <div class="diagnosis-banner-compact" id="diagnosis-banner">
+                            <div class="diagnosis-banner-label">Clinical Diagnosis</div>
+                            <div class="diagnosis-banner-value" id="res-diagnosis">---</div>
+                            <div class="diagnosis-banner-stage" id="res-stage">Stage: ---</div>
+                        </div>
+                        <div class="metrics-col">
+                            <div class="circular-metric-sm">
+                                <svg class="circular-svg-sm" viewBox="0 0 80 80">
+                                    <circle class="circle-bg" cx="40" cy="40" r="34"/>
+                                    <circle class="circle-fg" id="confidence-circle" cx="40" cy="40" r="34"
+                                        stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke="var(--primary-blue)"/>
+                                </svg>
+                                <div class="circular-label-wrap">
+                                    <span class="circular-value" id="res-confidence">0%</span>
+                                    <span class="circular-sublabel">Confidence</span>
+                                </div>
+                            </div>
+                            <div class="circular-metric-sm">
+                                <svg class="circular-svg-sm" viewBox="0 0 80 80">
+                                    <circle class="circle-bg" cx="40" cy="40" r="34"/>
+                                    <circle class="circle-fg" id="mmse-circle" cx="40" cy="40" r="34"
+                                        stroke-dasharray="213.6" stroke-dashoffset="213.6" stroke="var(--success-green)"/>
+                                </svg>
+                                <div class="circular-label-wrap">
+                                    <span class="circular-value" id="res-mmse-score">--</span>
+                                    <span class="circular-sublabel">MMSE /30</span>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <!-- Heatmap -->
+                    <div class="heatmap-container">
+                        <div class="heatmap-toolbar">
+                            <span style="font-size:0.7rem;font-weight:700;text-transform:uppercase;color:var(--primary-blue);letter-spacing:1px;">Neural Heatmap</span>
+                            <button class="heatmap-fullscreen-btn" id="btn-heatmap-fullscreen" title="Full Screen">
+                                <i class="fa-solid fa-expand"></i>
+                            </button>
+                        </div>
+                        <div class="heatmap-img-wrap">
+                            <img id="res-heatmap" alt="Neural Heatmap">
+                        </div>
+                        <div class="heatmap-legend">
+                            <span class="legend-label">Low Risk</span>
+                            <div class="legend-bar"></div>
+                            <span class="legend-label">High Risk</span>
+                        </div>
+                        <div class="heatmap-legend-labels">
+                            <span>Blue</span><span>Green</span><span>Yellow</span><span>Red</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- RIGHT: Cognitive Analysis -->
+                <div class="findings-col">
+                    <div class="findings-col-header">
+                        <i class="fa-solid fa-head-side-brain" style="color: var(--primary-blue);"></i>
+                        <span>Cognitive Analysis</span>
+                    </div>
+
+                    <!-- MMSE Card -->
+                    <div class="cog-result-card">
+                        <div class="cog-card-header">
+                            <span class="cog-card-title">MMSE Score</span>
+                            <span class="cog-card-max">/ 30</span>
+                        </div>
+                        <div class="cog-score-display" id="cog-mmse-display">--</div>
+                        <div class="cog-card-badge-wrap">
+                            <span class="mmse-class-badge mmse-class-normal" id="cog-mmse-badge">Awaiting Data</span>
+                        </div>
+                        <div class="cog-scale">
+                            <div class="cog-scale-item" style="--c:var(--success-green);"><span>25-30</span><span>Normal</span></div>
+                            <div class="cog-scale-item" style="--c:#f59e0b;"><span>19-24</span><span>Mild</span></div>
+                            <div class="cog-scale-item" style="--c:#ea580c;"><span>10-18</span><span>Moderate</span></div>
+                            <div class="cog-scale-item" style="--c:#ef4444;"><span>0-9</span><span>Severe</span></div>
+                        </div>
+                    </div>
+
+                    <!-- IQCODE Card -->
+                    <div class="cog-result-card" id="cog-iqcode-card" style="display:none;">
+                        <div class="cog-card-header">
+                            <span class="cog-card-title">IQCODE Average</span>
+                            <span class="cog-card-max">/ 5</span>
+                        </div>
+                        <div class="cog-score-display" id="cog-iqcode-display">--</div>
+                        <div class="cog-card-badge-wrap">
+                            <span class="mmse-class-badge" id="cog-iqcode-badge">Awaiting Data</span>
+                        </div>
+                        <div class="cog-scale">
+                            <div class="cog-scale-item" style="--c:var(--success-green);"><span>≤ 3.3</span><span>No Decline</span></div>
+                            <div class="cog-scale-item" style="--c:#ea580c;"><span>&gt; 3.3</span><span>Decline Risk</span></div>
+                        </div>
+                    </div>
+
+                    <!-- Stage Module (Compact with Accordions) -->
+                    <div class="stage-module glass-card-inner">
+
+                        <!-- Module Header + Timeline always visible -->
+                        <div class="stage-module-header-sm">
+                            <div class="stage-module-icon-sm"><i class="fa-solid fa-heart-pulse"></i></div>
+                            <span class="stage-module-title-sm">Understanding the Disease Stage</span>
+                        </div>
+
+                        <!-- Clinical Intelligence Alert Badge -->
+                        <div class="ci-alert-badge" id="ci-alert-badge" style="display:none;">
+                            <div class="ci-alert-left">
+                                <i class="ci-alert-icon" id="ci-alert-icon"></i>
+                                <span class="ci-alert-text" id="ci-alert-text"></span>
+                            </div>
+                            <div class="ci-info-tooltip-wrap">
+                                <i class="fa-solid fa-circle-question ci-info-icon"></i>
+                                <div class="ci-tooltip-box" id="ci-tooltip-box">
+                                    Factors such as education level, depression, medication side-effects, or low test motivation can cause a gap between neural imaging and cognitive scores.
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Stage Timeline always visible -->
+                        <div class="stage-timeline">
+                            <div class="timeline-track"></div>
+                            <div class="timeline-stages">
+                                <div class="timeline-stage" id="ts-0">
+                                    <div class="ts-dot"></div>
+                                    <div class="ts-name">No AD</div>
+                                    <div class="ts-mmse">30</div>
+                                </div>
+                                <div class="timeline-stage" id="ts-1">
+                                    <div class="ts-dot"></div>
+                                    <div class="ts-name">Very Mild</div>
+                                    <div class="ts-mmse">25–29</div>
+                                </div>
+                                <div class="timeline-stage" id="ts-2">
+                                    <div class="ts-dot"></div>
+                                    <div class="ts-name">Mild</div>
+                                    <div class="ts-mmse">19–24</div>
+                                </div>
+                                <div class="timeline-stage" id="ts-3">
+                                    <div class="ts-dot"></div>
+                                    <div class="ts-name">Mod–Sev</div>
+                                    <div class="ts-mmse">0–18</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Accordion: Stage Explanation -->
+                        <div class="accordion-item">
+                            <button class="accordion-trigger" aria-expanded="false">
+                                <span><i class="fa-solid fa-circle-info"></i> Stage Explanation</span>
+                                <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <p id="stage-explanation-text" class="stage-exp-text">
+                                    Run the clinical analysis to receive a personalized explanation.
+                                </p>
+                            </div>
+                        </div>
+
+                        <!-- Accordion: Caregiver Tips -->
+                        <div class="accordion-item">
+                            <button class="accordion-trigger" aria-expanded="false">
+                                <span><i class="fa-solid fa-lightbulb"></i> Next Steps for Caregivers</span>
+                                <i class="fa-solid fa-chevron-down accordion-arrow"></i>
+                            </button>
+                            <div class="accordion-body">
+                                <ul class="caregiver-tips-list" id="caregiver-tips-list">
+                                    <li>Run the analysis first to receive personalized caregiver guidance.</li>
+                                </ul>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Heatmap Full-Screen Overlay -->
+        <div id="heatmap-overlay" class="heatmap-fs-overlay">
+            <button id="btn-close-heatmap-fs" class="heatmap-fs-close"><i class="fa-solid fa-xmark"></i></button>
+            <img id="heatmap-fs-img" alt="Neural Heatmap Fullscreen">
+        </div>
+    </main>
+
+    <!-- MMSE Modal -->
+    <div class="modal" id="cognitive-modal">
+        <div class="glass-card modal-content"
+            style="width: 100%; max-width: 800px; max-height: 90vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h3 style="color: var(--primary-blue);">MMSE Examination</h3>
+                <button id="close-cog-modal"
+                    style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-dim);">&times;</button>
+            </div>
+
+            <h4 id="mmse-instructions" style="color: var(--text-main); font-weight: 600; margin-bottom: 1.5rem; padding: 10px; background: rgba(14, 165, 233, 0.1); border-radius: 8px;">
+                <!-- Dynamically populated by JS -->
+            </h4>
+
+            <div class="mmse-survey">
+                <!-- 1. Orientation (10 pts) -->
+                <div class="mmse-section">
+                    <h4 style="color: var(--primary-blue); border-bottom: 2px solid var(--primary-light); padding-bottom: 5px; margin: 1.5rem 0 1rem;">
+                        Orientation (10 points)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">Time: What is the...</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px; margin-bottom: 15px;">
+                        <label class="check-container">Year <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Season <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Month <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Date <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Day of week <input type="checkbox" class="mmse-point" data-val="1"></label>
+                    </div>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">Place: Where are we...</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+                        <label class="check-container">Country <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Governorate/State <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">City/Town <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Hospital/Clinic <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Floor/Room <input type="checkbox" class="mmse-point" data-val="1"></label>
+                    </div>
+                </div>
+
+                <!-- 2. Registration (3 pts) -->
+                <div class="mmse-section">
+                    <h4 style="color: var(--primary-blue); border-bottom: 2px solid var(--primary-light); padding-bottom: 5px; margin: 1.5rem 0 1rem;">
+                        Registration (3 points)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">Name 3 objects (e.g., Apple, Penny, Table). Allow 1 second to say each. Ask the patient to repeat all 3 after you have said them. Score 1 point for each correct answer on the first trial.</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+                        <label class="check-container">Object 1 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Object 2 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Object 3 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                    </div>
+                </div>
+
+                <!-- 3. Attention & Calculation (5 pts) -->
+                <div class="mmse-section">
+                    <h4 style="color: var(--primary-blue); border-bottom: 2px solid var(--primary-light); padding-bottom: 5px; margin: 1.5rem 0 1rem;">
+                        Attention & Calculation (5 points)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">Serial 7s. Ask the patient to subtract 7 from 100, and continue to subtract 7 from the answer. Stop after 5 answers.</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 10px;">
+                        <label class="check-container">93 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">86 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">79 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">72 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">65 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                    </div>
+                </div>
+
+                <!-- 4. Recall (3 pts) -->
+                <div class="mmse-section">
+                    <h4 style="color: var(--primary-blue); border-bottom: 2px solid var(--primary-light); padding-bottom: 5px; margin: 1.5rem 0 1rem;">
+                        Recall (3 points)</h4>
+                    <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 10px;">Ask the patient to recall the 3 objects named above.</p>
+                    <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); gap: 10px;">
+                        <label class="check-container">Object 1 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Object 2 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                        <label class="check-container">Object 3 <input type="checkbox" class="mmse-point" data-val="1"></label>
+                    </div>
+                </div>
+
+                <!-- 5. Language & Praxis (9 pts) -->
+                <div class="mmse-section">
+                    <h4 style="color: var(--primary-blue); border-bottom: 2px solid var(--primary-light); padding-bottom: 5px; margin: 1.5rem 0 1rem;">
+                        Language & Praxis (9 points)</h4>
+                    <div style="display: grid; grid-template-columns: 1fr; gap: 10px;">
+                        <label class="check-container" style="justify-content: space-between;">
+                            <span><strong>Naming (2 pts):</strong> Point to a pencil and a watch. Ask the patient to name them. (Check for both)</span>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="checkbox" class="mmse-point" data-val="1" title="Pencil">
+                                <input type="checkbox" class="mmse-point" data-val="1" title="Watch">
+                            </div>
+                        </label>
+                        <label class="check-container" style="justify-content: space-between;">
+                            <span><strong>Repetition (1 pt):</strong> Ask the patient to repeat: "No ifs, ands, or buts."</span>
+                            <input type="checkbox" class="mmse-point" data-val="1">
+                        </label>
+                        <label class="check-container" style="justify-content: space-between;">
+                            <span><strong>3-Stage Command (3 pts):</strong> "Take a paper in your right hand, fold it in half, and put it on the floor."</span>
+                            <div style="display: flex; gap: 10px;">
+                                <input type="checkbox" class="mmse-point" data-val="1" title="Takes in right hand">
+                                <input type="checkbox" class="mmse-point" data-val="1" title="Folds in half">
+                                <input type="checkbox" class="mmse-point" data-val="1" title="Puts on floor">
+                            </div>
+                        </label>
+                        <label class="check-container" style="justify-content: space-between;">
+                            <span><strong>Reading (1 pt):</strong> Ask the patient to read and obey: "CLOSE YOUR EYES."</span>
+                            <input type="checkbox" class="mmse-point" data-val="1">
+                        </label>
+                        <label class="check-container" style="justify-content: space-between;">
+                            <span><strong>Writing (1 pt):</strong> Ask the patient to write a sentence. It must contain a subject and verb and make sense.</span>
+                            <input type="checkbox" class="mmse-point" data-val="1">
+                        </label>
+                        <label class="check-container" style="justify-content: space-between;">
+                            <span><strong>Copying (1 pt):</strong> Ask the patient to copy a pair of intersecting pentagons.</span>
+                            <input type="checkbox" class="mmse-point" data-val="1">
+                        </label>
+                    </div>
+                </div>
+            </div>
+
+            <!-- IQCODE Section -->
+            <div id="iqcode-section" style="display: none; margin-top: 2rem;">
+                <h4 style="color: var(--primary-blue); border-bottom: 2px solid var(--primary-light); padding-bottom: 5px; margin-bottom: 1rem;">
+                    Informant Questionnaire on Cognitive Decline (IQCODE)</h4>
+                <p style="font-size: 0.85rem; color: var(--text-dim); margin-bottom: 15px;">
+                    Compared with 10 years ago, how is the patient at:
+                </p>
+                <div id="iqcode-container" class="validation-target">
+                    <!-- JS will populate the 16 questions here to keep HTML clean -->
+                </div>
+            </div>
+
+            <div class="integrity-check validation-target" id="integrity-container">
+                <input type="checkbox" id="caregiver-integrity">
+                <label for="caregiver-integrity">I confirm that I conducted this evaluation in a quiet environment and provided no hints to the patient.</label>
+            </div>
+
+            <div id="mmse-result-badge"
+                style="display:none; margin-top: 2rem; padding: 1.5rem; background: var(--primary-light); border-radius: 12px; text-align: center; border: 1px solid var(--primary-blue);">
+                <div style="font-size: 1.1rem; color: var(--text-main); margin-bottom: 10px;">Final Clinical Score</div>
+
+                <!-- MMSE Score -->
+                <div style="margin-bottom: 1rem; padding-bottom: 1rem; border-bottom: 1px solid var(--glass-border);">
+                    <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); margin-bottom: 5px; letter-spacing: 1px;">MMSE</div>
+                    <strong id="mmse-total-val" style="color: var(--primary-blue); font-size: 2rem; display: inline-block;">0</strong>
+                    <span style="font-size: 1.2rem; color: var(--text-dim);"> / 30</span>
+                    <div style="margin-top: 8px;">
+                        <span id="mmse-classification" class="mmse-class-badge mmse-class-normal">Normal</span>
+                    </div>
+                </div>
+
+                <!-- IQCODE Score -->
+                <div id="iqcode-result-row" style="display:none;">
+                    <div style="font-size: 0.8rem; text-transform: uppercase; color: var(--text-dim); margin-bottom: 5px; letter-spacing: 1px;">IQCODE Average</div>
+                    <strong id="iqcode-avg-val" style="color: var(--primary-blue); font-size: 2rem; display: inline-block;">--</strong>
+                    <span style="font-size: 1.2rem; color: var(--text-dim);"> / 5</span>
+                    <div style="margin-top: 8px;">
+                        <span id="iqcode-classification" class="mmse-class-badge">--</span>
+                    </div>
+                </div>
+            </div>
+
+            <div style="margin-top: 2rem; display: flex; flex-direction: column; gap: 10px;">
+                <button type="button" class="btn-auth-premium" id="btn-calc-cog">Calculate Final Score</button>
+                <button type="button" class="nav-icon-btn" id="btn-save-cog" style="display:none; width: 100%;">Commit &
+                    Close</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Validation Error Modal -->
+    <div class="modal" id="validation-modal">
+        <div class="glass-card modal-content" style="width: 100%; max-width: 480px; text-align: center;">
+            <div style="font-size: 3rem; margin-bottom: 1rem;">⚠️</div>
+            <h3 style="color: #ef4444; font-size: 1.3rem; margin-bottom: 1rem;">Incomplete Data</h3>
+            <p style="color: var(--text-main); margin-bottom: 1.5rem; line-height: 1.6;"
+                id="validation-modal-msg">Please ensure all fields are filled for a medically reliable result.</p>
+            <button class="btn-auth-premium" id="btn-close-validation"
+                style="background: #ef4444; box-shadow: none;">Understood</button>
+        </div>
+    </div>
+
+    <!-- Compare Scans Modal -->
+    <div class="modal" id="modal-compare">
+        <div class="glass-card modal-content" style="width: 100%; max-width: 1000px; max-height: 95vh; overflow-y: auto;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <h2 style="color: var(--primary-blue); font-weight: 800;">Compare Clinical Scans</h2>
+                <button id="close-compare-modal" style="background: none; border: none; font-size: 1.5rem; cursor: pointer; color: var(--text-dim);">&times;</button>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 30px;">
+                <!-- Scan 1 Section -->
+                <div class="scan-section">
+                    <h3 style="color: var(--primary-blue); margin-bottom: 1rem;">Scan 1</h3>
+                    <div class="input-group-modern" style="margin-bottom: 1.5rem;">
+                        <input type="file" id="scan-file-1" class="input-modern" accept="image/*" style="padding: 8px;">
+                        <button class="btn-auth-premium" id="btn-analyze-1" onclick="analyzeScan(1, event)" style="margin-top: 10px;">Analyze Scan 1</button>
+                    </div>
+
+                    <div id="results-1" style="display: none;">
+                        <div class="classification-badge">
+                            <span id="diagnosis-1">---</span> • <span id="confidence-1">0%</span>
+                        </div>
+                        
+                        <div class="slider-container">
+                            <div class="label-orig">Orig</div>
+                            <div class="label-ai">AI</div>
+                            <img id="img-orig-1" src="" alt="Original 1">
+                            <div class="heatmap-overlay" id="overlay-1">
+                                <img id="img-ai-1" src="" alt="Heatmap 1">
+                            </div>
+                            <input type="range" min="0" max="100" value="50" class="comparison-slider" id="slider-1" oninput="slideImage(1)">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Scan 2 Section -->
+                <div class="scan-section">
+                    <h3 style="color: var(--primary-blue); margin-bottom: 1rem;">Scan 2</h3>
+                    <div class="input-group-modern" style="margin-bottom: 1.5rem;">
+                        <input type="file" id="scan-file-2" class="input-modern" accept="image/*" style="padding: 8px;">
+                        <button class="btn-auth-premium" id="btn-analyze-2" onclick="analyzeScan(2, event)" style="margin-top: 10px;">Analyze Scan 2</button>
+                    </div>
+
+                    <div id="results-2" style="display: none;">
+                        <div class="classification-badge">
+                            <span id="diagnosis-2">---</span> • <span id="confidence-2">0%</span>
+                        </div>
+                        
+                        <div class="slider-container">
+                            <div class="label-orig">Orig</div>
+                            <div class="label-ai">AI</div>
+                            <img id="img-orig-2" src="" alt="Original 2">
+                            <div class="heatmap-overlay" id="overlay-2">
+                                <img id="img-ai-2" src="" alt="Heatmap 2">
+                            </div>
+                            <input type="range" min="0" max="100" value="50" class="comparison-slider" id="slider-2" oninput="slideImage(2)">
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Conclusion Card -->
+            <div id="comparison-conclusion" style="display: none; margin-top: 30px;">
+                <h3 style="color: var(--primary-blue); margin-bottom: 10px;">Trend Analysis</h3>
+                <div id="trend-result-box" class="trend-box">
+                    <span id="trend-icon" style="font-size: 1.5rem;"></span>
+                    <span id="trend-message"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Hidden Template for PDF -->
+    <div id="pdf-report-template"
+        style="position: absolute; left: -9999px; width: 800px; padding: 40px; background: white; color: black;">
+        <h1 style="color: #0369a1; text-align: center;">NeuroScan AI Clinical Report</h1>
+        <hr style="margin: 20px 0;">
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 30px;">
+            <div>
+                <p><strong>Patient Name:</strong> <span id="pdf-name"></span></p>
+                <p><strong>Age:</strong> <span id="pdf-age"></span></p>
+                <p><strong>Diagnosis:</strong> <span id="pdf-diagnosis"></span></p>
+            </div>
+            <div style="text-align: right;">
+                <p><strong>Date:</strong> <span>${new Date().toLocaleDateString()}</span></p>
+                <p><strong>Status:</strong> <span style="color: #0369a1; font-weight: 800;">CONFIRMED</span></p>
+            </div>
+        </div>
+        <div style="display: flex; gap: 20px; justify-content: center;">
+            <div style="text-align: center;">
+                <p style="font-weight: 800;">Original MRI</p>
+                <img id="pdf-img-orig"
+                    style="width: 350px; height: 350px; object-fit: contain; background: black; border: 2px solid #eee;">
+            </div>
+            <div style="text-align: center;">
+                <p style="font-weight: 800;">Neural Heatmap</p>
+                <img id="pdf-img-map"
+                    style="width: 350px; height: 350px; object-fit: contain; background: black; border: 2px solid #eee;">
+            </div>
+        </div>
+        <div style="margin-top: 30px; padding: 20px; border: 1px solid #eee;">
+            <p><strong>Clinical Notes:</strong></p>
+            <p id="pdf-notes"></p>
+        </div>
+    </div>
+    <!-- Scripts -->
+    <script src="exam.js?v=11"></script>
+    <script>
+        // Kinetic Neural Background Animation
+        const canvas = document.getElementById('neural-canvas');
+        const ctx = canvas.getContext('2d');
+        let particles = [];
+
+        function initCanvas() {
+            canvas.width = window.innerWidth;
+            canvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: Math.random() * canvas.width,
+                    y: Math.random() * canvas.height,
+                    vx: (Math.random() - 0.5) * 0.5,
+                    vy: (Math.random() - 0.5) * 0.5,
+                    size: Math.random() * 2 + 1
+                });
+            }
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(137, 207, 240, 0.4)';
+            ctx.strokeStyle = 'rgba(137, 207, 240, 0.1)';
+
+            particles.forEach((p, i) => {
+                p.x += p.vx;
+                p.y += p.vy;
+
+                if (p.x < 0 || p.x > canvas.width) p.vx *= -1;
+                if (p.y < 0 || p.y > canvas.height) p.vy *= -1;
+
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
+
+                for (let j = i + 1; j < particles.length; j++) {
+                    const p2 = particles[j];
+                    const dist = Math.hypot(p.x - p2.x, p.y - p2.y);
+                    if (dist < 150) {
+                        ctx.beginPath();
+                        ctx.moveTo(p.x, p.y);
+                        ctx.lineTo(p2.x, p2.y);
+                        ctx.stroke();
+                    }
+                }
+            });
+            requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', initCanvas);
+        initCanvas();
+        draw();
+    </script>
+</body>
+
+</html>
